@@ -1,28 +1,21 @@
 import { View, moment, TFile } from "obsidian";
-import { FirstDayOfWeek } from "./types";
 import DailyNoteNavbar from "./dailyNoteNavbar/dailyNoteNavbar";
 import { createDailyNote, getAllDailyNotes, getDailyNote } from 'obsidian-daily-notes-interface';
 
 /**
- * Gets the dates in the entire week that the date is in.
+ * Returns `radius * 2 + 1` dates centered on the given date.
+ * The center date sits at position `radius` in the returned array.
  *
- * @param {moment.Moment} date - The date to get dates for.
- * @returns {moment.Moment[]} Returns the dates in the week.
+ * @param {moment.Moment} centerDate - The date to center on.
+ * @param {number} radius - Number of days on each side (default 3, giving 7 total).
+ * @returns {moment.Moment[]} Dates from centerDate - radius to centerDate + radius.
  */
-export function getDatesInWeekByDate(date: moment.Moment, firstDayOfWeek: FirstDayOfWeek): moment.Moment[] {
-	let startOfWeek = date.clone().startOf('isoWeek');
-	if (firstDayOfWeek === "Sunday" && date.weekday() === 6) {
-		startOfWeek = date.clone();
-	} else if (firstDayOfWeek === "Sunday") {
-		startOfWeek.subtract(1, "day");
+export function getDatesAroundDate(centerDate: moment.Moment, radius = 3): moment.Moment[] {
+	const dates = [];
+	for (let i = -radius; i <= radius; i++) {
+		dates.push(centerDate.clone().add(i, 'days'));
 	}
-
-	const daysInWeek = [];
-	for (let i = 0; i < 7; i++) {
-		daysInWeek.push(startOfWeek.clone().add(i, 'days'));
-	}
-
-	return daysInWeek;
+	return dates;
 }
 
 /**
