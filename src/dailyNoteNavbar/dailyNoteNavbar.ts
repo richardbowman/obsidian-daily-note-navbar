@@ -53,11 +53,13 @@ export default class DailyNoteNavbar {
 
 	// Arrow functions so `this` is bound without .bind() — safe to pass directly to addEventListener.
 	private onWheel = (event: WheelEvent) => {
-		// Ignore events that are predominantly vertical (e.g. normal page scroll).
-		if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) return;
+		// Use whichever axis has more movement:
+		//   - Horizontal trackpad swipe → deltaX dominant
+		//   - Mouse scroll wheel (always pure vertical) → deltaY dominant
+		const delta = Math.abs(event.deltaX) >= Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
 
 		event.preventDefault();
-		this.wheelAccumulator += event.deltaX;
+		this.wheelAccumulator += delta;
 
 		const steps = Math.trunc(this.wheelAccumulator / WHEEL_STEP);
 		if (steps !== 0) {
