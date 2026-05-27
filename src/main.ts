@@ -79,7 +79,12 @@ export default class DailyNoteNavbarPlugin extends Plugin {
 
 	removeNavbar(id: string) {
 		const navbar = this.navbars[id];
-		navbar.parentEl.removeChild(navbar.containerEl);
+		if (!navbar) return;
+		try {
+			navbar.parentEl.removeChild(navbar.containerEl);
+		} catch {
+			// containerEl may have already been detached from the DOM
+		}
 		delete this.navbars[id];
 	}
 

@@ -1,6 +1,6 @@
 import { ButtonComponent, MarkdownView, Notice, Menu, moment, Keymap } from "obsidian";
 import { getAllDailyNotes, getDailyNote } from "obsidian-daily-notes-interface";
-import { getDatesAroundDate, getDateFromFileName } from "../utils";
+import { getDatesAroundDate, getDateFromFileName, showChildren } from "../utils";
 import { FileOpenType } from "../types";
 import { FILE_OPEN_TYPES_MAPPING, FILE_OPEN_TYPES_TO_PANE_TYPE } from "./consts";
 import { getDailyNoteFile } from "../utils";
@@ -83,11 +83,21 @@ export default class DailyNoteNavbar {
 	};
 
 	rerender() {
-		// Update date from view if the active file has changed; reset offset so the
-		// new note is re-centered.
 		const activeFile = this.view.file;
 		const fileDate = activeFile ? getDateFromFileName(activeFile.basename, this.plugin.settings.dailyNoteDateFormat) : null;
-		if (fileDate && fileDate.format("YYYY-MM-DD") !== this.date.format("YYYY-MM-DD")) {
+
+		// If the view is no longer showing a daily note, self-remove and restore the
+		// original title. This covers vault events (create/rename/delete) that call
+		// rerenderNavbars() while the pane has already navigated away from a daily note.
+		if (!fileDate || !fileDate.isValid()) {
+			this.plugin.removeNavbar(this.id);
+			showChildren(this.parentEl);
+			return;
+		}
+
+		// Center on the new date if the file changed; guard isValid() so an
+		// invalid moment can never corrupt this.date.
+		if (fileDate.format("YYYY-MM-DD") !== this.date.format("YYYY-MM-DD")) {
 			this.date = fileDate;
 			this.dayOffset = 0;
 		}
